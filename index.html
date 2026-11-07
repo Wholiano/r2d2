@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>R2-D2 Controller</title>
+<style>
+  :root{
+    --bg:#0b0f17; --panel:#141b26; --panel2:#1b2433; --line:#28344a;
+    --ink:#e8eef7; --muted:#8a99b0; --blue:#3aa0ff; --blue2:#1b6fd0;
+    --red:#ff4d53; --red2:#c62d35; --ok:#39d98a; --silver:#c7d0db;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 70% -10%, #15203a 0%, rgba(21,32,58,0) 60%),
+      radial-gradient(900px 500px at -10% 110%, #10243a 0%, rgba(16,36,58,0) 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    padding:16px;
+  }
+  .wrap{max-width:960px;margin:0 auto}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .logo{font-weight:800;letter-spacing:.5px;font-size:20px}
+  .logo b{color:var(--blue)}
+  .status{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:14px;color:var(--muted)}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+  .dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+  .dot.wait{background:#f5b942;box-shadow:0 0 10px #f5b942}
+
+  .banner{background:#3a1d1f;border:1px solid #6b2b30;color:#ffd7d9;padding:12px 14px;border-radius:12px;margin-bottom:12px;font-size:14px;line-height:1.5;display:none}
+  .banner.show{display:block}
+  .banner a{color:#ffd7d9;text-decoration:underline}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:720px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .card h2{margin:0 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600;padding:12px 16px;transition:transform .04s ease,filter .15s ease}
+  button:active{transform:translateY(1px) scale(.99)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .btn-blue{background:linear-gradient(180deg,var(--blue),var(--blue2))}
+  .btn-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
+  .btn-stop{background:linear-gradient(180deg,var(--red),var(--red2));font-size:18px;padding:16px 20px;width:100%;letter-spacing:1px}
+
+  /* joystick */
+  .padwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .pad{position:relative;width:260px;height:260px;max-width:78vw;max-height:78vw;border-radius:50%;
+    background:radial-gradient(circle at 50% 40%, #27344b 0%, #161e2c 68%, #121824 100%);
+    border:1px solid var(--line);touch-action:none;box-shadow:inset 0 2px 30px rgba(0,0,0,.5)}
+  .pad .cross{position:absolute;inset:0;border-radius:50%;background:
+    linear-gradient(to right,transparent 49.4%,rgba(255,255,255,.06) 49.4%,rgba(255,255,255,.06) 50.6%,transparent 50.6%),
+    linear-gradient(to bottom,transparent 49.4%,rgba(255,255,255,.06) 49.4%,rgba(255,255,255,.06) 50.6%,transparent 50.6%)}
+  .pad .ring{position:absolute;inset:34px;border-radius:50%;border:1px dashed rgba(255,255,255,.08)}
+  .knob{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;
+    background:radial-gradient(circle at 38% 34%, #6fc0ff 0%, var(--blue) 45%, #0f4f9c 100%);
+    box-shadow:0 8px 24px rgba(0,0,0,.45),inset 0 2px 6px rgba(255,255,255,.35);
+    display:flex;align-items:center;justify-content:center;color:#eaf4ff;font-weight:800;font-size:13px;
+    transition:transform .12s ease;will-change:transform}
+  .knob.dragging{transition:none}
+  .hint{color:var(--muted);font-size:13px;text-align:center}
+  .readout{font-variant-numeric:tabular-nums;color:var(--silver);font-size:13px}
+
+  .opts{display:flex;flex-direction:column;gap:12px}
+  .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;color:var(--ink)}
+  .opt small{color:var(--muted);display:block;font-weight:400}
+  input[type=range]{width:160px;accent-color:var(--blue)}
+  .switch{position:relative;width:52px;height:30px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--panel2);border:1px solid var(--line);border-radius:30px;transition:.15s}
+  .slider:before{content:"";position:absolute;height:22px;width:22px;left:4px;top:3px;background:#fff;border-radius:50%;transition:.15s}
+  .switch input:checked+.slider{background:var(--blue2)}
+  .switch input:checked+.slider:before{transform:translateX(21px)}
+
+  .sounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+  .sounds button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;padding:12px 8px;text-transform:capitalize}
+  .sounds button:hover{filter:brightness(1.15)}
+
+  .log{margin-top:14px;background:#0a0e15;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#9fb3cc;height:92px;overflow:auto;white-space:pre-wrap}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:16px;line-height:1.6}
+
+  details.build{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-top:14px;overflow:hidden}
+  details.build>summary{list-style:none;cursor:pointer;padding:16px;font-weight:700;color:var(--ink);font-size:15px;display:flex;align-items:center;gap:8px}
+  details.build>summary::-webkit-details-marker{display:none}
+  details.build>summary::after{content:"\25B8";margin-left:auto;color:var(--muted);transition:transform .15s}
+  details.build[open]>summary::after{transform:rotate(90deg)}
+  .build .body{padding:0 16px 18px;font-size:14px;line-height:1.6}
+  .build h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin:18px 0 6px}
+  .build ol,.build ul{margin:6px 0;padding-left:20px}
+  .build li{margin:5px 0}
+  .build .need{color:var(--ok);font-weight:700}
+  .build .dim{color:var(--muted)}
+  .build code{background:#0a0e15;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+  .build .tip{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:12px}
+  .build a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><b>R2-D2</b> Controller</div>
+    <div class="status"><span id="dot" class="dot"></span><span id="statusText">Disconnected</span></div>
+  </header>
+
+  <div id="banner" class="banner"></div>
+
+  <div class="row" style="margin-bottom:14px">
+    <button id="connectBtn" class="btn-blue" onclick="toggleConnect()">Connect to R2-D2</button>
+    <span class="readout" id="readout">drive —, turn —</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Drive</h2>
+      <div class="padwrap">
+        <div class="pad" id="pad">
+          <div class="cross"></div>
+          <div class="ring"></div>
+          <div class="knob" id="knob">DRAG</div>
+        </div>
+        <button class="btn-stop" onclick="emergencyStop()">■ STOP</button>
+        <div class="hint">Drag the stick, or use <b>W A S D</b> / arrow keys.<br>Up = forward · release = stop.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Settings</h2>
+      <div class="opts">
+        <label class="opt">
+          <span>Max speed <small id="speedLbl">70%</small></span>
+          <input type="range" id="speed" min="20" max="100" value="70" oninput="onSpeed()">
+        </label>
+        <div class="opt">
+          <span>Invert steering <small>flip if left/right are backwards</small></span>
+          <label class="switch"><input type="checkbox" id="invSteer"><span class="slider"></span></label>
+        </div>
+        <div class="opt">
+          <span>Invert drive <small>flip if forward/back are backwards</small></span>
+          <label class="switch"><input type="checkbox" id="invDrive"><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Sounds</h2>
+    <div class="sounds" id="sounds"></div>
+  </div>
+
+  <details class="build">
+    <summary>&#128295; How to build R2 &mdash; the app's missing instructions</summary>
+    <div class="body">
+      <p>The step-by-step build used to live inside the app, so the box alone doesn't show it. Here it is, pieced together from littleBits' own lesson and a builder's walkthrough. <b>For this controller you only need Power + Control Hub + Servo + DC Motor</b> &mdash; the Proximity Sensor is optional (its self-driving was an app feature that's gone now).</p>
+
+      <h3>The 6 Bits</h3>
+      <ul>
+        <li><b>P4 Power</b> (dark blue) + 9V battery &amp; adapter</li>
+        <li><b>Control Hub</b> &mdash; the brain &amp; Bluetooth; ports <code>1</code> (top), <code>2</code> (middle), <code>3</code> (bottom)</li>
+        <li><span class="need">011 Servo</span> &mdash; steering</li>
+        <li><span class="need">025 DC Motor</span> &mdash; drive</li>
+        <li><span class="dim">Proximity Sensor (pink) + Wire &mdash; optional</span></li>
+      </ul>
+
+      <h3>Wire up the Bits</h3>
+      <p>They snap together magnetically, left &rarr; right:</p>
+      <ol>
+        <li>9V battery &rarr; adapter &rarr; plug into <b>P4 Power</b>.</li>
+        <li><b>P4 Power</b> &rarr; <b>Control Hub</b>, on the hub's single-adapter (input) side.</li>
+        <li>Into the Control Hub's ports:
+          <ul>
+            <li><code>Port 2</code> (middle) &rarr; <span class="need">011 Servo</span></li>
+            <li><code>Port 3</code> (bottom) &rarr; <span class="need">025 DC Motor</span></li>
+            <li><code>Port 1</code> (top) &rarr; Wire &rarr; <span class="dim">Proximity Sensor (optional)</span></li>
+          </ul>
+        </li>
+      </ol>
+
+      <h3>Build the body</h3>
+      <ol>
+        <li>Fit the <b>gear</b> (big side / small side) into the chassis, lock it with the <b>axle</b>, then push a <b>wheel</b> onto each end.</li>
+        <li>Mount the <b>DC motor</b> under the chassis so its gear <b>meshes with the chassis gears</b> &mdash; that's what spins the wheels.</li>
+        <li>Mount the <b>servo</b> at the <b>front</b> (the section with four holes). The small wheel goes on the servo's peg, the cover clips on top &mdash; this steers R2.</li>
+        <li>Clip the <b>battery holder</b> + battery at the <b>back</b>; keep the hub and its lights toward the front.</li>
+        <li>Snap on the <b>frame</b> (locking tab at the bottom &mdash; don't pinch the cables), add the <b>arms</b> (<b>L&rarr;L, R&rarr;R</b>, leave room for the wheels to spin), then the <b>head</b>. Stickers last.</li>
+      </ol>
+
+      <div class="tip"><b>If something's off:</b> nothing drives or steers, or the wrong part moves &rarr; swap the Servo and Motor between ports <code>2</code> and <code>3</code>. Forward/back or left/right reversed &rarr; just flip the <b>Invert</b> switches up in Settings, no rewiring needed.</div>
+
+      <p class="dim" style="margin-top:12px;font-size:12px">Reconstructed from littleBits' "Create Your Droid" lesson and the Scholars' Lab build blog. Port numbers come from one builder's walkthrough &mdash; double-check against your actual hub.</p>
+    </div>
+  </details>
+
+  <footer>
+    No app, no account — this page talks to R2 directly over Bluetooth.<br>
+    Needs Chrome/Edge (desktop or Android) or Bluefy (iPhone/iPad). Turn R2 on and make sure the Bluetooth Bit's light is on.
+  </footer>
+</div>
+
+<script>
+/* ---- R2-D2 (littleBits w32 ControlHub) protocol ----
+   Reverse-engineered by github.com/meetar/littlebits-r2d2-controls */
+const SERVICE = 'd9d9e9e0-aa4e-4797-8151-cb41cedaf2ad';
+const CHAR    = 'd9d9e9e1-aa4e-4797-8151-cb41cedaf2ad';
+
+const driveValues = [
+"140202FF659D","140202FA3538","140202F6F4B4","140202F2B430","140202ED57EE","140202EA2709",
+"140202E6E685","140202E3B620","140202DF41FF","140202DA115A","140202D6D0D6","140202D29052",
+"140202CE43EF","140202CA036B","140202C5F284","140202C28263","140202BE3D78","140202BA7DFC",
+"140202B6BC70","140202B2FCF4","140202AB7FEC","140202AA6FCD","140202A6AE41","140202A2EEC5",
+"140202A1DEA6","1402029E191A","1402029969FD","140202969812","14020292D896","1402028D3B48",
+"1402028A4BAF","140202897BCC","1402027DD457","1402027994D3","14020276653C","1402027225B8",
+"1402026EF605","1402026DC666","1402026896C3","1402026327A8","1402026107EA","1402025CE014",
+"14020259B0B1","14020255713D","140202502198","1402024B82C2","14020249A280","14020245630C",
+"140202412388","1402023BFC55","14020239DC17","140202337D5D","140202304D3E","1402022BEE64",
+"14020229CE26","140202214F2E","140202205F0F","1402021BD837","14020218E854","1402021429D8",
+"1402020F8A82","1402020CBAE1","140202070B8A"]; // 0=full fwd, 31=stop, 61=full back
+
+const turnValues = [
+"140201FC00AD","140201EA725A","140201E49394","140201DF14AC","140201D9746A","140201D1F562",
+"140201CC36FE","140201C697B4","140201C0F772","140201B918CC","140201B4C961","140201AE7A1A",
+"140201A7EB33","140201A2BB96","1402019C6C0B","14020196CD41","14020190AD87","1402018A1EFC",
+"14020184FF32","1402017EB167","14020178D1A1","1402017270EB","1402016C8314","14020166225E",
+"140201604298","1402015AD581","14020154344F","1402014F9715","14020149F7D3","1402014246B8",
+"1402013CD9E1","1402013548C8","140201002E3E"]; // 0=left, 16=straight, 32=right
+
+const sounds = [
+["grump","1E011B42AA"],["scold","1E011A528B"],["chitter","1E011962E8"],["chattering","1E011872C9"],
+["i love you","1E01178326"],["bleep","1E01169307"],["beep","1E0115A364"],["whistle","1E0114B345"],
+["descending","1E0113C3A2"],["excited","1E0112D383"],["cheery","1E0111E3E0"],["sad","1E0110F3C1"],
+["scream!!","1E010F101F"],["startup","1E010E003E"],["surprise!!","1E010C207C"],["story","1E010A40BA"],
+["wow!","1E010860F8"],["thbt","1E01068136"],["worried","1E0104A174"],["dubious","1E0102C1B2"],
+["startup (alt)","1E0101F1D1"],["thinking","1E0100E1F0"]];
+
+const STOP_DRIVE = 31, STRAIGHT = 16;
+
+/* ---- state ---- */
+let device = null, characteristic = null;
+let maxSpeed = 0.70;
+const stick = {x:0, y:0, active:false};     // joystick, y up = +1
+const keys = {};
+let lastMove = 0, stopSent = true;
+
+/* ---- helpers ---- */
+function log(msg){
+  const el = document.getElementById('log');
+  const t = new Date().toLocaleTimeString();
+  el.textContent += `[${t}] ${msg}\n`;
+  el.scrollTop = el.scrollHeight;
+}
+function toBuf(hex){
+  const b = new Uint8Array(hex.length/2);
+  for(let i=0;i<b.length;i++) b[i]=parseInt(hex.substr(i*2,2),16);
+  return b.buffer;
+}
+function setStatus(state, text){
+  const dot = document.getElementById('dot');
+  dot.className = 'dot' + (state==='on'?' on':state==='wait'?' wait':'');
+  document.getElementById('statusText').textContent = text;
+}
+
+/* ---- write queue (coalesce drive/turn, never overlap writes) ---- */
+let writing = false;
+const queue = [];
+function enqueue(hex, key){
+  if(key){ for(let i=queue.length-1;i>=0;i--) if(queue[i].key===key) queue.splice(i,1); }
+  queue.push({hex, key});
+  pump();
+}
+async function pump(){
+  if(writing || !characteristic) return;
+  const item = queue.shift();
+  if(!item) return;
+  writing = true;
+  try{ await characteristic.writeValue(toBuf(item.hex)); }
+  catch(e){ /* hub is easily overloaded; drop and move on */ }
+  writing = false;
+  if(queue.length) pump();
+}
+
+/* ---- connect ---- */
+function unsupported(){
+  const b = document.getElementById('banner');
+  b.classList.add('show');
+  b.innerHTML = "This browser can't do Web Bluetooth. Use <b>Chrome or Edge</b> on a computer or Android phone, "+
+    "or <b>Bluefy</b> on iPhone/iPad (Safari and iOS Chrome won't work).";
+}
+async function toggleConnect(){
+  if(characteristic){ disconnect(); return; }
+  if(!navigator.bluetooth){ unsupported(); return; }
+  try{
+    setStatus('wait','Choose "w32 ControlHub"…');
+    log('Requesting device…');
+    device = await navigator.bluetooth.requestDevice({
+      filters:[{name:'w32 ControlHub'}],
+      optionalServices:[SERVICE]
+    });
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    setStatus('wait','Connecting…');
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE);
+    characteristic = await service.getCharacteristic(CHAR);
+    setStatus('on','Connected to R2-D2');
+    document.getElementById('connectBtn').textContent = 'Disconnect';
+    log('Connected! Beep boop.');
+    stopSent = false; lastMove = 0;
+    play('1E0115A364'); // say beep
+  }catch(e){
+    setStatus('', 'Disconnected');
+    log('Connect failed: ' + (e.message||e));
+  }
+}
+function onDisconnected(){
+  characteristic = null; device = null;
+  setStatus('','Disconnected');
+  document.getElementById('connectBtn').textContent = 'Connect to R2-D2';
+  log('R2 disconnected.');
+}
+function disconnect(){
+  try{ if(device && device.gatt.connected) device.gatt.disconnect(); }catch(e){}
+  onDisconnected();
+}
+
+/* ---- commands ---- */
+function play(hex){ if(characteristic) enqueue(hex); }
+function emergencyStop(){
+  stick.x=0; stick.y=0; stick.active=false;
+  for(const k in keys) keys[k]=false;
+  if(characteristic){ enqueue(turnValues[STRAIGHT],'turn'); enqueue(driveValues[STOP_DRIVE],'drive'); }
+  moveKnob(0,0);
+  setReadout(STRAIGHT, STOP_DRIVE);
+}
+
+/* ---- input → indices ---- */
+function currentInput(){
+  if(stick.active) return {x:stick.x, y:stick.y, active:(stick.x||stick.y)!==0};
+  let kx=(keys.right?1:0)-(keys.left?1:0);
+  let ky=(keys.fwd?1:0)-(keys.back?1:0);
+  if(kx||ky) return {x:kx, y:ky, active:true};
+  return {x:0, y:0, active:false};
+}
+function turnIndex(x){
+  if(document.getElementById('invSteer').checked) x=-x;
+  let i=Math.round((x+1)/2*32);
+  return Math.max(0,Math.min(32,i));
+}
+function driveIndex(y){
+  if(document.getElementById('invDrive').checked) y=-y;
+  y*=maxSpeed;
+  let i = y>=0 ? Math.round(31*(1-y)) : Math.round(31 + (-y)*30);
+  return Math.max(0,Math.min(61,i));
+}
+function setReadout(ti,di){
+  const spd = Math.round((31-di)/31*100);          // + fwd, - back
+  const trn = Math.round((ti-16)/16*100);           // - left, + right
+  document.getElementById('readout').textContent =
+    `drive ${spd>0?'+':''}${spd}%, turn ${trn>0?'R':trn<0?'L':'·'}${Math.abs(trn)}%`;
+}
+
+/* ---- control loop (throttled so we never flood the hub) ---- */
+setInterval(()=>{
+  if(!characteristic) return;
+  const mv = currentInput();
+  if(mv.active){
+    const ti=turnIndex(mv.x), di=driveIndex(mv.y);
+    enqueue(turnValues[ti],'turn');
+    enqueue(driveValues[di],'drive');
+    setReadout(ti,di);
+    lastMove=Date.now(); stopSent=false;
+  }else if(!stopSent || Date.now()-lastMove<1200){
+    enqueue(turnValues[STRAIGHT],'turn');
+    enqueue(driveValues[STOP_DRIVE],'drive');
+    setReadout(STRAIGHT,STOP_DRIVE);
+    if(Date.now()-lastMove>=1200) stopSent=true;
+  }
+},140);
+
+/* ---- joystick (pointer events = mouse + touch) ---- */
+const pad=document.getElementById('pad'), knob=document.getElementById('knob');
+let R=0, cx=0, cy=0;
+function measure(){ const r=pad.getBoundingClientRect(); R=r.width/2-18; cx=r.left+r.width/2; cy=r.top+r.height/2; }
+function moveKnob(nx,ny){ knob.style.transform=`translate(${nx*R}px, ${ny*R}px)`; }
+function onDown(e){ measure(); knob.classList.add('dragging'); knob.textContent=''; stick.active=true; pad.setPointerCapture(e.pointerId); onMove(e); }
+function onMove(e){
+  if(!stick.active) return;
+  let dx=e.clientX-cx, dy=e.clientY-cy;
+  const d=Math.hypot(dx,dy);
+  if(d>R){ dx*=R/d; dy*=R/d; }
+  moveKnob(dx/R, dy/R);
+  stick.x=dx/R;
+  stick.y=-dy/R; // up = forward
+}
+function onUp(e){ stick.active=false; stick.x=0; stick.y=0; knob.classList.remove('dragging'); knob.textContent='DRAG'; moveKnob(0,0); }
+pad.addEventListener('pointerdown',onDown);
+pad.addEventListener('pointermove',onMove);
+pad.addEventListener('pointerup',onUp);
+pad.addEventListener('pointercancel',onUp);
+window.addEventListener('resize',measure);
+
+/* ---- keyboard ---- */
+const keyMap={KeyW:'fwd',ArrowUp:'fwd',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
+addEventListener('keydown',e=>{ if(keyMap[e.code]){ keys[keyMap[e.code]]=true; e.preventDefault(); }});
+addEventListener('keyup',  e=>{ if(keyMap[e.code]){ keys[keyMap[e.code]]=false; e.preventDefault(); }});
+
+/* ---- settings ---- */
+function onSpeed(){ const v=+document.getElementById('speed').value; maxSpeed=v/100; document.getElementById('speedLbl').textContent=v+'%'; }
+
+/* ---- build sound buttons ---- */
+(function(){
+  const box=document.getElementById('sounds');
+  for(const [name,cmd] of sounds){
+    const b=document.createElement('button');
+    b.textContent=name;
+    b.onclick=()=>play(cmd);
+    box.appendChild(b);
+  }
+})();
+
+/* ---- startup checks ---- */
+(async function(){
+  if(!navigator.bluetooth){ unsupported(); return; }
+  try{
+    if(navigator.bluetooth.getAvailability){
+      const ok=await navigator.bluetooth.getAvailability();
+      if(!ok) log('Bluetooth adapter looks off/unavailable.');
+    }
+  }catch(e){}
+  log('Ready. Turn R2 on, then press Connect.');
+})();
+</script>
+</body>
+</html>
