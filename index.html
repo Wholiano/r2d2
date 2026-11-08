@@ -71,6 +71,7 @@
   .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;color:var(--ink)}
   .opt small{color:var(--muted);display:block;font-weight:400}
   input[type=range]{width:160px;accent-color:var(--blue)}
+  select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;font-weight:600}
   .switch{position:relative;width:52px;height:30px;flex:0 0 auto}
   .switch input{opacity:0;width:0;height:0}
   .slider{position:absolute;inset:0;background:var(--panel2);border:1px solid var(--line);border-radius:30px;transition:.15s}
@@ -171,8 +172,17 @@
           <span>Invert drive <small>flip if forward/back are backwards</small></span>
           <label class="switch"><input type="checkbox" id="invDrive"><span class="slider"></span></label>
         </div>
+        <div class="opt">
+          <span>Drive output <small>which hub socket the motor sits in</small></span>
+          <select id="driveChSel" onchange="onChan()"><option>0</option><option>1</option><option selected>2</option><option>3</option></select>
+        </div>
+        <div class="opt">
+          <span>Steering output <small>which socket the servo sits in</small></span>
+          <select id="turnChSel" onchange="onChan()"><option>0</option><option selected>1</option><option>2</option><option>3</option></select>
+        </div>
       </div>
       <button class="btn-ghost" style="width:100%;margin-top:12px" onclick="testMotor()">&#9881; Test the drive motor</button>
+      <button class="btn-blue" style="width:100%;margin-top:8px" onclick="findMotor()">&#128269; Find my motor &mdash; scan all sockets</button>
       <div class="log" id="log"></div>
     </div>
   </div>
@@ -472,26 +482,46 @@
 const SERVICE = 'd9d9e9e0-aa4e-4797-8151-cb41cedaf2ad';
 const CHAR    = 'd9d9e9e1-aa4e-4797-8151-cb41cedaf2ad';
 
-const driveValues = [
-"140202FF659D","140202FA3538","140202F6F4B4","140202F2B430","140202ED57EE","140202EA2709",
-"140202E6E685","140202E3B620","140202DF41FF","140202DA115A","140202D6D0D6","140202D29052",
-"140202CE43EF","140202CA036B","140202C5F284","140202C28263","140202BE3D78","140202BA7DFC",
-"140202B6BC70","140202B2FCF4","140202AB7FEC","140202AA6FCD","140202A6AE41","140202A2EEC5",
-"140202A1DEA6","1402029E191A","1402029969FD","140202969812","14020292D896","1402028D3B48",
-"1402028A4BAF","140202897BCC","1402027DD457","1402027994D3","14020276653C","1402027225B8",
-"1402026EF605","1402026DC666","1402026896C3","1402026327A8","1402026107EA","1402025CE014",
-"14020259B0B1","14020255713D","140202502198","1402024B82C2","14020249A280","14020245630C",
-"140202412388","1402023BFC55","14020239DC17","140202337D5D","140202304D3E","1402022BEE64",
-"14020229CE26","140202214F2E","140202205F0F","1402021BD837","14020218E854","1402021429D8",
-"1402020F8A82","1402020CBAE1","140202070B8A"]; // 0=full fwd, 31=stop, 61=full back
+/* The 2-byte trailer on every command turned out to be CRC-16/CCITT-FALSE
+   (poly 0x1021, init 0xFFFF, no reflection). It reproduces all 98 captured
+   commands exactly, so we can BUILD commands rather than replay a table —
+   which is what lets the output channel be changed below. */
+function crc16(bytes){
+  let c = 0xFFFF;
+  for(const b of bytes){
+    c ^= b << 8;
+    for(let i=0;i<8;i++) c = (c & 0x8000) ? ((c<<1) ^ 0x1021) & 0xFFFF : (c<<1) & 0xFFFF;
+  }
+  return c;
+}
+const h2 = n => n.toString(16).toUpperCase().padStart(2,'0');
+const h4 = n => n.toString(16).toUpperCase().padStart(4,'0');
+/* output command: 14 02 <channel> <value> <crc> */
+const outCmd   = (ch,val) => '1402' + h2(ch) + h2(val) + h4(crc16([ch,val]));
+/* sound command: 1E 01 <index> <crc> */
+const soundCmd = idx      => '1E01' + h2(idx) + h4(crc16([idx]));
 
-const turnValues = [
-"140201FC00AD","140201EA725A","140201E49394","140201DF14AC","140201D9746A","140201D1F562",
-"140201CC36FE","140201C697B4","140201C0F772","140201B918CC","140201B4C961","140201AE7A1A",
-"140201A7EB33","140201A2BB96","1402019C6C0B","14020196CD41","14020190AD87","1402018A1EFC",
-"14020184FF32","1402017EB167","14020178D1A1","1402017270EB","1402016C8314","14020166225E",
-"140201604298","1402015AD581","14020154344F","1402014F9715","14020149F7D3","1402014246B8",
-"1402013CD9E1","1402013548C8","140201002E3E"]; // 0=left, 16=straight, 32=right
+/* value ramps captured from the original app */
+const DRIVE_VALS = [
+0xFF,0xFA,0xF6,0xF2,0xED,0xEA,0xE6,0xE3,0xDF,0xDA,0xD6,0xD2,0xCE,0xCA,0xC5,0xC2,
+0xBE,0xBA,0xB6,0xB2,0xAB,0xAA,0xA6,0xA2,0xA1,0x9E,0x99,0x96,0x92,0x8D,0x8A,0x89,
+0x7D,0x79,0x76,0x72,0x6E,0x6D,0x68,0x63,0x61,0x5C,0x59,0x55,0x50,0x4B,0x49,0x45,
+0x41,0x3B,0x39,0x33,0x30,0x2B,0x29,0x21,0x20,0x1B,0x18,0x14,0x0F,0x0C,0x07];
+// 63 values: 0 = full forward, 31 = stop, 62 = full back
+const TURN_VALS = [
+0xFC,0xEA,0xE4,0xDF,0xD9,0xD1,0xCC,0xC6,0xC0,0xB9,0xB4,0xAE,0xA7,0xA2,0x9C,0x96,
+0x90,0x8A,0x84,0x7E,0x78,0x72,0x6C,0x66,0x60,0x5A,0x54,0x4F,0x49,0x42,0x3C,0x35,
+0x00];
+// 33 values: 0 = left, 16 = straight, 32 = right
+
+/* which hub output each thing is wired to (changeable in Settings) */
+let driveCh = 2, turnCh = 1;
+let driveValues = [], turnValues = [];
+function rebuildCmds(){
+  driveValues = DRIVE_VALS.map(v => outCmd(driveCh, v));
+  turnValues  = TURN_VALS.map(v  => outCmd(turnCh,  v));
+}
+rebuildCmds();
 
 const sounds = [
 ["grump","1E011B42AA"],["scold","1E011A528B"],["chitter","1E011962E8"],["chattering","1E011872C9"],
@@ -617,8 +647,8 @@ function turnIndex(x){
 function driveIndex(y){
   if(document.getElementById('invDrive').checked) y=-y;
   y*=maxSpeed;
-  let i = y>=0 ? Math.round(31*(1-y)) : Math.round(31 + (-y)*30);
-  return Math.max(0,Math.min(61,i));
+  let i = y>=0 ? Math.round(31*(1-y)) : Math.round(31 + (-y)*31);
+  return Math.max(0,Math.min(62,i));
 }
 function setReadout(ti,di){
   const spd = Math.round((31-di)/31*100);          // + fwd, - back
@@ -695,38 +725,92 @@ async function testMotor(){
   log('Motor test done. Did the motor make ANY noise?');
 }
 
-/* ---- Vader-style breathing, synthesised (no audio file) ---- */
-let actx=null, vaderTimer=null;
-function AC(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
-function noiseBuf(ctx, secs){
-  const b=ctx.createBuffer(1, Math.ceil(ctx.sampleRate*secs), ctx.sampleRate);
-  const d=b.getChannelData(0);
-  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-  return b;
+function onChan(){
+  driveCh = +document.getElementById('driveChSel').value;
+  turnCh  = +document.getElementById('turnChSel').value;
+  rebuildCmds();
+  log('Outputs set — drive on socket ' + driveCh + ', steering on socket ' + turnCh + '.');
+  if(characteristic){ enqueue(turnValues[turnIndex(0)],'turn'); enqueue(driveValues[STOP_DRIVE],'drive'); }
 }
-function breath(ctx,t0,dur,f1,f2,peak){
-  const src=ctx.createBufferSource(); src.buffer=noiseBuf(ctx,dur);
-  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.8;
-  bp.frequency.setValueAtTime(f1,t0);
-  bp.frequency.exponentialRampToValueAtTime(f2,t0+dur);
-  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2000;
-  const g=ctx.createGain();
-  g.gain.setValueAtTime(0.0001,t0);
-  g.gain.exponentialRampToValueAtTime(peak,t0+dur*0.38);
-  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-  src.connect(bp); bp.connect(lp); lp.connect(g); g.connect(ctx.destination);
-  src.start(t0); src.stop(t0+dur+0.05);
+
+/* ---- scan every hub output to find which socket the motor is on ---- */
+async function findMotor(){
+  if(!characteristic){ log('Not connected — press Connect first.'); return; }
+  log('--- SCAN START: watch the motor ---');
+  for(const ch of [0,1,2,3]){
+    log('socket ' + ch + ': driving one way…');
+    enqueue(outCmd(ch,0xFF)); await sleep(1100);
+    enqueue(outCmd(ch,0x89)); await sleep(350);
+    log('socket ' + ch + ': driving the other way…');
+    enqueue(outCmd(ch,0x07)); await sleep(1100);
+    enqueue(outCmd(ch,0x89)); await sleep(700);
+  }
+  log('--- SCAN END. Whichever socket moved the motor, choose it as "Drive output". ---');
 }
-function vaderCycle(){
-  const ctx=AC(), t=ctx.currentTime+0.05;
-  breath(ctx, t,       1.45, 430, 920, 0.55);  // inhale: rising, brighter
-  breath(ctx, t+1.95,  1.75, 400, 165, 0.48);  // exhale: falling, darker
+
+/* ---- Vader-style breathing -----------------------------------------
+   Synthesised from filtered noise, rendered to a WAV and played through
+   an <audio> element. iPhones silence the Web Audio API when the ringer
+   switch is on mute, but still play media elements — so this route
+   actually makes a sound. No sampled recording is used.               */
+let vaderEl=null, vaderURL=null;
+const VRATE=16000;
+
+function bandpassCoef(f0,Q,rate){
+  const w0=2*Math.PI*f0/rate, a=Math.sin(w0)/(2*Q), c=Math.cos(w0), a0=1+a;
+  return [a/a0, 0, -a/a0, -2*c/a0, (1-a)/a0];   // b0,b1,b2,a1,a2
 }
+
+function renderBreath(out,startIdx,dur,f1,f2,peak,rate){
+  const n=Math.floor(dur*rate);
+  let x1=0,x2=0,y1=0,y2=0;
+  for(let i=0;i<n;i++){
+    const t=i/n;
+    const f=f1*Math.pow(f2/f1,t);                 // sweep the resonance
+    const [b0,b1,b2,a1,a2]=bandpassCoef(f,1.8,rate);
+    const x=Math.random()*2-1;                    // noise = the air
+    const y=b0*x+b1*x1+b2*x2-a1*y1-a2*y2;
+    x2=x1; x1=x; y2=y1; y1=y;
+    const env=Math.sin(Math.PI*t);                // smooth in / out
+    const k=startIdx+i;
+    if(k<out.length) out[k]+=y*env*peak;
+  }
+}
+
+function buildVaderWav(){
+  const n=Math.floor(4.0*VRATE);
+  const buf=new Float32Array(n);
+  renderBreath(buf, 0,                        1.45, 430, 920, 0.95, VRATE); // inhale
+  renderBreath(buf, Math.floor(1.95*VRATE),   1.75, 400, 165, 0.85, VRATE); // exhale
+  const ab=new ArrayBuffer(44+n*2), v=new DataView(ab);
+  const w=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+  w(0,'RIFF');  v.setUint32(4,36+n*2,true);  w(8,'WAVE'); w(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,VRATE,true); v.setUint32(28,VRATE*2,true);
+  v.setUint16(32,2,true); v.setUint16(34,16,true);
+  w(36,'data'); v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){
+    const s=Math.max(-1,Math.min(1,buf[i]));
+    v.setInt16(44+i*2, s<0 ? s*0x8000 : s*0x7FFF, true);
+  }
+  return new Blob([ab],{type:'audio/wav'});
+}
+
 function toggleVader(btn){
-  if(vaderTimer){ clearInterval(vaderTimer); vaderTimer=null; btn.textContent='▶ Vader breathing'; btn.classList.remove('on'); return; }
-  const ctx=AC(); if(ctx.state==='suspended') ctx.resume();
-  vaderCycle();
-  vaderTimer=setInterval(vaderCycle, 4000);
+  if(vaderEl && !vaderEl.paused){
+    vaderEl.pause();
+    btn.textContent='▶ Vader breathing'; btn.classList.remove('on');
+    return;
+  }
+  if(!vaderEl){
+    log('Building the breath…');
+    vaderURL=URL.createObjectURL(buildVaderWav());
+    vaderEl=new Audio(vaderURL);
+    vaderEl.loop=true;
+    vaderEl.setAttribute('playsinline','');
+  }
+  const p=vaderEl.play();
+  if(p && p.catch) p.catch(e=>log('Audio blocked: '+e.message+' — turn the volume up / ringer switch off silent.'));
   btn.textContent='■ Stop breathing'; btn.classList.add('on');
 }
 
