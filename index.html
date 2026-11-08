@@ -157,7 +157,7 @@
   <details class="build">
     <summary>&#128295; How to build R2 &mdash; the app's missing instructions</summary>
     <div class="body">
-      <p>The step-by-step build used to live inside the app, so the box alone doesn't show it. Here it is, pieced together from littleBits' own lesson and a builder's walkthrough. <b>For this controller you only need Power + Control Hub + Servo + DC Motor</b> &mdash; the Proximity Sensor is optional (its self-driving was an app feature that's gone now).</p>
+      <p>The step-by-step build only ever existed inside the app, which is why the box stops short. These steps are <b>recovered from the original app's own mission screens</b>, so they're the real sequence &mdash; not a guess.</p>
 
       <h3>The 6 Bits</h3>
       <ul>
@@ -168,32 +168,57 @@
         <li><span class="dim">Proximity Sensor (pink) + Wire &mdash; optional</span></li>
       </ul>
 
-      <h3>Wire up the Bits</h3>
-      <p>They snap together magnetically, left &rarr; right:</p>
+      <h3>Part 1 &mdash; Build the circuit</h3>
       <ol>
-        <li>9V battery &rarr; adapter &rarr; plug into <b>P4 Power</b>.</li>
-        <li><b>P4 Power</b> &rarr; <b>Control Hub</b>, on the hub's single-adapter (input) side.</li>
-        <li>Into the Control Hub's ports:
-          <ul>
-            <li><code>Port 2</code> (middle) &rarr; <span class="need">011 Servo</span></li>
-            <li><code>Port 3</code> (bottom) &rarr; <span class="need">025 DC Motor</span></li>
-            <li><code>Port 1</code> (top) &rarr; Wire &rarr; <span class="dim">Proximity Sensor (optional)</span></li>
-          </ul>
-        </li>
+        <li>Battery &rarr; adapter &rarr; plug into the <b>Power Bit</b>, then snap <b>Power &rarr; Control Hub</b> on the hub's single-adapter (input) side.</li>
+        <li>Snap the <span class="need">DC Motor Bit</span> to <code>BitSnap 3</code> on the Control Hub.</li>
+        <li>Snap the <span class="need">Servo Bit</span> to the <code>CENTER BitSnap</code>.</li>
+        <li>Set the <b>Servo's little switch to <code>turn</code></b> &mdash; <b>not</b> <code>swing</code>. In swing mode it waves instead of steering. (The DC Motor has its own direction switch next to it.)</li>
+        <li>Add the <b>wheel hook + small wheel</b> to the Servo Bit.</li>
+        <li><b>Power on.</b> The light on the Power Bit should glow <b>red</b>.</li>
+        <li class="dim">Optional: Wire &rarr; Proximity Sensor into <code>BitSnap 1</code>. Its self-driving was an app feature and is gone &mdash; R2 drives fine without it.</li>
       </ol>
 
-      <h3>Build the body</h3>
-      <ol>
-        <li>Fit the <b>gear</b> (big side / small side) into the chassis, lock it with the <b>axle</b>, then push a <b>wheel</b> onto each end.</li>
-        <li>Mount the <b>DC motor</b> under the chassis so its gear <b>meshes with the chassis gears</b> &mdash; that's what spins the wheels.</li>
-        <li>Mount the <b>servo</b> at the <b>front</b> (the section with four holes). The small wheel goes on the servo's peg, the cover clips on top &mdash; this steers R2.</li>
-        <li>Clip the <b>battery holder</b> + battery at the <b>back</b>; keep the hub and its lights toward the front.</li>
-        <li>Snap on the <b>frame</b> (locking tab at the bottom &mdash; don't pinch the cables), add the <b>arms</b> (<b>L&rarr;L, R&rarr;R</b>, leave room for the wheels to spin), then the <b>head</b>. Stickers last.</li>
+      <h3>Part 2 &mdash; Build the drive</h3>
+      <ol start="7">
+        <li>Set your circuit aside.</li>
+        <li>Click the <b>mounting block</b> onto the <b>wheel frame</b>, one side at a time.</li>
+        <li>Attach the <b>drive gear and axle</b> to the wheel frame.</li>
+        <li>Press the <b>large wheels onto the axle</b> &mdash; hard, until they're properly tight.</li>
+        <li>Press your <b>circuit firmly onto the FRONT</b> of the mounting block.</li>
+        <li>Press the <b>battery firmly onto the BACK</b>. Test it &mdash; it should stay put when you turn the whole thing upside down.</li>
+        <li>Add the <b>spike gear</b> onto the <b>DC Motor Bit</b>.</li>
+        <li><b>Click the DC motor assembly into the clips UNDERNEATH the wheel frame.</b></li>
+        <li>Press the <b>third-leg assembly</b> onto the wheel frame.</li>
+        <li><b>Power on</b> (light red), then connect up top and drive.</li>
       </ol>
 
-      <div class="tip"><b>If something's off:</b> nothing drives or steers, or the wrong part moves &rarr; swap the Servo and Motor between ports <code>2</code> and <code>3</code>. Forward/back or left/right reversed &rarr; just flip the <b>Invert</b> switches up in Settings, no rewiring needed.</div>
+      <div class="tip"><b>&#9888; This is the step that makes or breaks it.</b> When you clip the motor under the wheel frame, <b>the spike gear on the motor must physically touch the drive gear on the axle.</b> If those two gears aren't meshed, the motor spins happily and the wheels don't move at all. The app asked this exact question: <i>"Is the spike gear touching the drive gear?"</i></div>
 
-      <p class="dim" style="margin-top:12px;font-size:12px">Reconstructed from littleBits' "Create Your Droid" lesson and the Scholars' Lab build blog. Port numbers come from one builder's walkthrough &mdash; double-check against your actual hub.</p>
+      <svg viewBox="0 0 440 215" width="100%" style="max-width:440px;display:block;margin:14px auto;background:#0a0e15;border:1px solid #28344a;border-radius:12px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: the motor's spike gear must touch the axle's drive gear">
+        <rect x="58" y="28" width="304" height="14" rx="6" fill="#27344b"/>
+        <text x="210" y="22" fill="#8a99b0" font-size="11" text-anchor="middle" font-family="sans-serif">wheel frame</text>
+        <line x1="90" y1="95" x2="330" y2="95" stroke="#8a99b0" stroke-width="4"/>
+        <circle cx="90" cy="95" r="33" fill="#161e2c" stroke="#c7d0db" stroke-width="3"/>
+        <circle cx="90" cy="95" r="11" fill="#27344b"/>
+        <circle cx="330" cy="95" r="33" fill="#161e2c" stroke="#c7d0db" stroke-width="3"/>
+        <circle cx="330" cy="95" r="11" fill="#27344b"/>
+        <circle cx="210" cy="95" r="25" fill="#1b2433" stroke="#3aa0ff" stroke-width="7" stroke-dasharray="7 5"/>
+        <circle cx="210" cy="95" r="7" fill="#3aa0ff"/>
+        <text x="210" y="56" fill="#3aa0ff" font-size="10" text-anchor="middle" font-family="sans-serif">drive gear (on axle)</text>
+        <circle cx="210" cy="150" r="19" fill="#1b2433" stroke="#39d98a" stroke-width="7" stroke-dasharray="6 5"/>
+        <circle cx="210" cy="150" r="6" fill="#39d98a"/>
+        <rect x="238" y="133" width="74" height="34" rx="7" fill="#1b2433" stroke="#39d98a" stroke-width="2"/>
+        <text x="275" y="154" fill="#39d98a" font-size="9" text-anchor="middle" font-family="sans-serif">DC MOTOR</text>
+        <text x="132" y="155" fill="#39d98a" font-size="10" text-anchor="middle" font-family="sans-serif">spike gear</text>
+        <circle cx="210" cy="122" r="12" fill="none" stroke="#ff4d53" stroke-width="2"/>
+        <line x1="178" y1="196" x2="204" y2="134" stroke="#ff4d53" stroke-width="1.5"/>
+        <text x="150" y="208" fill="#ff4d53" font-size="12" font-weight="bold" text-anchor="middle" font-family="sans-serif">these MUST touch</text>
+      </svg>
+
+      <div class="tip"><b>Other fixes:</b> no steering at all &rarr; the Servo is almost certainly in <code>swing</code> mode instead of <code>turn</code>. Nothing responds, or the wrong part moves &rarr; check the Motor is on <code>BitSnap 3</code> and the Servo on the <code>center</code> BitSnap. Forward/back or left/right reversed &rarr; flip the <b>Invert</b> switches up in Settings, no rewiring needed.</div>
+
+      <p class="dim" style="margin-top:12px;font-size:12px">Recovered from the original littleBits Droid Inventor app's own mission screens.</p>
     </div>
   </details>
 
