@@ -82,6 +82,16 @@
   .sounds button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;padding:12px 8px;text-transform:capitalize}
   .sounds button:hover{filter:brightness(1.15)}
 
+  details.xtra{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+  details.xtra>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:600;font-size:14px;color:var(--ink);display:flex;align-items:center}
+  details.xtra>summary::-webkit-details-marker{display:none}
+  details.xtra>summary::after{content:"\25B8";margin-left:auto;color:var(--muted);transition:transform .15s}
+  details.xtra[open]>summary::after{transform:rotate(90deg)}
+  .xbody{padding:0 14px 14px;font-size:13px;line-height:1.55;color:var(--muted)}
+  .xbody p{margin:0 0 10px}
+  .xbody .sounds button{text-transform:none;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  #vaderBtn.on{background:linear-gradient(180deg,var(--red),var(--red2));border-color:transparent;color:#fff}
+
   .log{margin-top:14px;background:#0a0e15;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#9fb3cc;height:92px;overflow:auto;white-space:pre-wrap}
   footer{color:var(--muted);font-size:12px;text-align:center;margin-top:16px;line-height:1.6}
 
@@ -149,6 +159,10 @@
           <span>Max speed <small id="speedLbl">70%</small></span>
           <input type="range" id="speed" min="20" max="100" value="70" oninput="onSpeed()">
         </label>
+        <label class="opt">
+          <span>Steering trim <small id="trimLbl">0 &mdash; nudge the centre if it sits crooked</small></span>
+          <input type="range" id="trim" min="-16" max="16" value="0" oninput="onTrim()">
+        </label>
         <div class="opt">
           <span>Invert steering <small>flip if left/right are backwards</small></span>
           <label class="switch"><input type="checkbox" id="invSteer"><span class="slider"></span></label>
@@ -158,6 +172,7 @@
           <label class="switch"><input type="checkbox" id="invDrive"><span class="slider"></span></label>
         </div>
       </div>
+      <button class="btn-ghost" style="width:100%;margin-top:12px" onclick="testMotor()">&#9881; Test the drive motor</button>
       <div class="log" id="log"></div>
     </div>
   </div>
@@ -165,6 +180,22 @@
   <div class="card" style="margin-top:14px">
     <h2>Sounds</h2>
     <div class="sounds" id="sounds"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Extras</h2>
+    <div class="row">
+      <button id="vaderBtn" class="btn-ghost" onclick="toggleVader(this)">&#9654; Vader breathing</button>
+      <span class="readout">synthesised &mdash; plays from your phone, not R2</span>
+    </div>
+
+    <details class="xtra">
+      <summary>Hidden R2 sounds &mdash; experimental</summary>
+      <div class="xbody">
+        <p>R2's sound codes end in a checksum, which turned out to be CRC-16/CCITT-FALSE &mdash; every one of the 22 known sounds checks out. So these are codes for the slots <b>nobody ever captured</b>. Some may be silent or do nothing at all. Tap and find out.</p>
+        <div class="sounds" id="hiddenSounds"></div>
+      </div>
+    </details>
   </div>
 
   <details class="build">
@@ -475,6 +506,7 @@ const STOP_DRIVE = 31, STRAIGHT = 16;
 /* ---- state ---- */
 let device = null, characteristic = null;
 let maxSpeed = 0.70;
+let trim = 0;
 const stick = {x:0, y:0, active:false};     // joystick, y up = +1
 const keys = {};
 let lastMove = 0, stopSent = true;
@@ -579,7 +611,7 @@ function currentInput(){
 }
 function turnIndex(x){
   if(document.getElementById('invSteer').checked) x=-x;
-  let i=Math.round((x+1)/2*32);
+  let i=Math.round((x+1)/2*32) + trim;
   return Math.max(0,Math.min(32,i));
 }
 function driveIndex(y){
@@ -642,6 +674,75 @@ addEventListener('keyup',  e=>{ if(keyMap[e.code]){ keys[keyMap[e.code]]=false; 
 
 /* ---- settings ---- */
 function onSpeed(){ const v=+document.getElementById('speed').value; maxSpeed=v/100; document.getElementById('speedLbl').textContent=v+'%'; }
+function onTrim(){
+  trim=+document.getElementById('trim').value;
+  document.getElementById('trimLbl').textContent =
+    (trim===0?'0':(trim>0?'+':'')+trim) + ' — nudge the centre if it sits crooked';
+  if(characteristic){ enqueue(turnValues[turnIndex(0)],'turn'); }
+}
+
+/* ---- drive-motor test: ramps forward, then stops ---- */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+async function testMotor(){
+  if(!characteristic){ log('Not connected — press Connect first.'); return; }
+  log('Motor test: ramping forward…');
+  for(const i of [24,18,12,6,0]){ enqueue(driveValues[i],'drive'); await sleep(320); }
+  enqueue(driveValues[STOP_DRIVE],'drive');
+  await sleep(250);
+  log('Motor test: ramping backward…');
+  for(const i of [38,46,54,61]){ enqueue(driveValues[i],'drive'); await sleep(320); }
+  enqueue(driveValues[STOP_DRIVE],'drive');
+  log('Motor test done. Did the motor make ANY noise?');
+}
+
+/* ---- Vader-style breathing, synthesised (no audio file) ---- */
+let actx=null, vaderTimer=null;
+function AC(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function noiseBuf(ctx, secs){
+  const b=ctx.createBuffer(1, Math.ceil(ctx.sampleRate*secs), ctx.sampleRate);
+  const d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  return b;
+}
+function breath(ctx,t0,dur,f1,f2,peak){
+  const src=ctx.createBufferSource(); src.buffer=noiseBuf(ctx,dur);
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.8;
+  bp.frequency.setValueAtTime(f1,t0);
+  bp.frequency.exponentialRampToValueAtTime(f2,t0+dur);
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2000;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(peak,t0+dur*0.38);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  src.connect(bp); bp.connect(lp); lp.connect(g); g.connect(ctx.destination);
+  src.start(t0); src.stop(t0+dur+0.05);
+}
+function vaderCycle(){
+  const ctx=AC(), t=ctx.currentTime+0.05;
+  breath(ctx, t,       1.45, 430, 920, 0.55);  // inhale: rising, brighter
+  breath(ctx, t+1.95,  1.75, 400, 165, 0.48);  // exhale: falling, darker
+}
+function toggleVader(btn){
+  if(vaderTimer){ clearInterval(vaderTimer); vaderTimer=null; btn.textContent='▶ Vader breathing'; btn.classList.remove('on'); return; }
+  const ctx=AC(); if(ctx.state==='suspended') ctx.resume();
+  vaderCycle();
+  vaderTimer=setInterval(vaderCycle, 4000);
+  btn.textContent='■ Stop breathing'; btn.classList.add('on');
+}
+
+/* ---- untried sound slots -------------------------------------------
+   The trailing 2 bytes are CRC-16/CCITT-FALSE over the index byte
+   (poly 0x1021, init 0xFFFF, no reflection) — this reproduces all 22
+   known codes exactly, so these are valid packets for the slots that
+   were never captured. They may be silent.                            */
+const hiddenSounds = [
+  ["slot 03","1E0103D193"],["slot 05","1E0105B155"],["slot 07","1E01079117"],
+  ["slot 09","1E010970D9"],["slot 0B","1E010B509B"],["slot 0D","1E010D305D"],
+  ["slot 1C","1E011C324D"],["slot 1D","1E011D226C"],["slot 1E","1E011E120F"],
+  ["slot 1F","1E011F022E"],["slot 20","1E0120C592"],["slot 21","1E0121D5B3"],
+  ["slot 22","1E0122E5D0"],["slot 23","1E0123F5F1"],["slot 24","1E01248516"],
+  ["slot 25","1E01259537"],["slot 26","1E0126A554"],["slot 27","1E0127B575"]
+];
 
 /* ---- build sound buttons ---- */
 (function(){
@@ -651,6 +752,13 @@ function onSpeed(){ const v=+document.getElementById('speed').value; maxSpeed=v/
     b.textContent=name;
     b.onclick=()=>play(cmd);
     box.appendChild(b);
+  }
+  const hbox=document.getElementById('hiddenSounds');
+  for(const [name,cmd] of hiddenSounds){
+    const b=document.createElement('button');
+    b.textContent=name;
+    b.onclick=()=>{ play(cmd); log('tried '+name+' ('+cmd+')'); };
+    hbox.appendChild(b);
   }
 })();
 
