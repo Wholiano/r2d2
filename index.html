@@ -99,6 +99,19 @@
   .build code{background:#0a0e15;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
   .build .tip{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:12px}
   .build a{color:var(--blue)}
+
+  .parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:10px;margin:10px 0 4px}
+  .part{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
+  .part svg{display:block;width:100%;height:74px;margin-bottom:4px}
+  .part b{display:block;font-size:13px;color:var(--ink)}
+  .part small{display:block;color:var(--muted);font-size:11px;line-height:1.35;margin-top:3px}
+  .vstep{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+  .vstep .hd{display:flex;align-items:flex-start;gap:11px}
+  .vstep .n{flex:0 0 30px;height:30px;border-radius:50%;background:linear-gradient(180deg,var(--blue),var(--blue2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .vstep .hd div{flex:1;font-size:14.5px;line-height:1.5;padding-top:4px}
+  .vstep svg{display:block;width:100%;max-width:340px;margin:12px auto 0;background:#0a0e15;border:1px solid var(--line);border-radius:10px}
+  .vstep.key{border-color:var(--red);background:#2a1618}
+  .vstep.key .n{background:linear-gradient(180deg,var(--red),var(--red2))}
 </style>
 </head>
 <body>
@@ -155,43 +168,237 @@
   </div>
 
   <details class="build">
-    <summary>&#128295; How to build R2 &mdash; the app's missing instructions</summary>
+    <summary>&#128295; How to build R2 &mdash; step by step, with pictures</summary>
     <div class="body">
       <p>The step-by-step build only ever existed inside the app, which is why the box stops short. These steps are <b>recovered from the original app's own mission screens</b>, so they're the real sequence &mdash; not a guess.</p>
 
-      <h3>The 6 Bits</h3>
+      <h3>First &mdash; find these pieces</h3>
+      <p>Every step below uses these names. Match them to the plastic pieces in your box before you start.</p>
+      <div class="parts">
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g stroke="#7d8a9c" stroke-width="1.6">
+              <polygon points="14,44 62,26 106,42 58,62" fill="#c7d0db"/>
+              <polygon points="14,44 58,62 58,71 14,53" fill="#93a0b1"/>
+              <polygon points="58,62 106,42 106,51 58,71" fill="#aab7c7"/>
+            </g>
+            <g fill="#8d9aab"><circle cx="36" cy="44" r="1.9"/><circle cx="48" cy="40" r="1.9"/><circle cx="60" cy="36" r="1.9"/><circle cx="72" cy="40" r="1.9"/><circle cx="84" cy="44" r="1.9"/><circle cx="48" cy="50" r="1.9"/><circle cx="60" cy="46" r="1.9"/><circle cx="72" cy="50" r="1.9"/></g>
+          </svg>
+          <b>Wheel frame</b><small>The flat tray covered in little holes. Everything attaches to this.</small>
+        </div>
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g stroke="#7d8a9c" stroke-width="1.6">
+              <rect x="46" y="16" width="30" height="48" rx="3" fill="#c7d0db"/>
+              <rect x="55" y="8" width="13" height="10" rx="5" fill="#c7d0db"/>
+              <rect x="40" y="58" width="42" height="10" rx="3" fill="#aab7c7"/>
+            </g>
+            <g fill="#8d9aab"><circle cx="54" cy="26" r="1.8"/><circle cx="61" cy="26" r="1.8"/><circle cx="68" cy="26" r="1.8"/><circle cx="54" cy="34" r="1.8"/><circle cx="61" cy="34" r="1.8"/><circle cx="68" cy="34" r="1.8"/><circle cx="54" cy="42" r="1.8"/><circle cx="61" cy="42" r="1.8"/><circle cx="68" cy="42" r="1.8"/><circle cx="54" cy="50" r="1.8"/><circle cx="61" cy="50" r="1.8"/><circle cx="68" cy="50" r="1.8"/></g>
+          </svg>
+          <b>Mounting block</b><small>The tall upright board. Bits clip on the front, battery on the back.</small>
+        </div>
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="12" y="36" width="96" height="8" rx="4" fill="#c7d0db" stroke="#7d8a9c" stroke-width="1.6"/>
+            <circle cx="16" cy="40" r="5.5" fill="#aab7c7" stroke="#7d8a9c" stroke-width="1.6"/>
+            <circle cx="104" cy="40" r="5.5" fill="#aab7c7" stroke="#7d8a9c" stroke-width="1.6"/>
+          </svg>
+          <b>Axle</b><small>The long thin rod. Runs through the tray; wheels push on its ends.</small>
+        </div>
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="60" cy="40" r="19" fill="#1b2433" stroke="#3aa0ff" stroke-width="8" stroke-dasharray="6 5"/>
+            <circle cx="60" cy="40" r="7" fill="#3aa0ff"/>
+          </svg>
+          <b>Drive gear</b><small>Goes on the <b>axle</b>, in the tray. The build video calls it the smaller gear.</small>
+        </div>
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="55" y="42" width="11" height="28" rx="3" fill="#c7d0db" stroke="#7d8a9c" stroke-width="1.6"/>
+            <circle cx="60" cy="32" r="21" fill="#1b2433" stroke="#39d98a" stroke-width="8" stroke-dasharray="6 5"/>
+            <circle cx="60" cy="32" r="7" fill="#39d98a"/>
+          </svg>
+          <b>Spike gear</b><small>The spiky one. Pushes onto the <b>DC motor</b>.</small>
+        </div>
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="35" cy="40" r="22" fill="#161e2c" stroke="#c7d0db" stroke-width="4"/>
+            <circle cx="35" cy="40" r="8" fill="#27344b"/>
+            <circle cx="85" cy="40" r="22" fill="#161e2c" stroke="#c7d0db" stroke-width="4"/>
+            <circle cx="85" cy="40" r="8" fill="#27344b"/>
+          </svg>
+          <b>Large wheels &times;2</b><small>The two big wheels. They push onto the axle ends.</small>
+        </div>
+
+        <div class="part">
+          <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g stroke="#7d8a9c" stroke-width="1.6">
+              <rect x="54" y="8" width="12" height="28" rx="3" fill="#c7d0db"/>
+              <rect x="47" y="34" width="26" height="10" rx="3" fill="#aab7c7"/>
+            </g>
+            <circle cx="60" cy="58" r="13" fill="#161e2c" stroke="#c7d0db" stroke-width="3"/>
+            <circle cx="60" cy="58" r="4.5" fill="#27344b"/>
+          </svg>
+          <b>Third leg</b><small>Small wheel on a stalk. Clips under the front.</small>
+        </div>
+
+      </div>
+
+      <h3>Your 5 Bits (the electronics)</h3>
       <ul>
-        <li><b>P4 Power</b> (dark blue) + 9V battery &amp; adapter</li>
-        <li><b>Control Hub</b> &mdash; the brain &amp; Bluetooth; ports <code>1</code> (top), <code>2</code> (middle), <code>3</code> (bottom)</li>
-        <li><span class="need">011 Servo</span> &mdash; steering</li>
-        <li><span class="need">025 DC Motor</span> &mdash; drive</li>
-        <li><span class="dim">Proximity Sensor (pink) + Wire &mdash; optional</span></li>
+        <li><b>Power Bit</b> (dark blue) + battery &amp; adapter</li>
+        <li><b>Control Hub</b> &mdash; the brain and Bluetooth. Its three sockets are called <b>BitSnaps</b>.</li>
+        <li><span class="need">Servo</span> &mdash; does the steering</li>
+        <li><span class="need">DC Motor</span> &mdash; drives the wheels</li>
+        <li><span class="dim">Proximity Sensor (pink) + Wire &mdash; optional, not needed to drive</span></li>
       </ul>
 
-      <h3>Part 1 &mdash; Build the circuit</h3>
-      <ol>
-        <li>Battery &rarr; adapter &rarr; plug into the <b>Power Bit</b>, then snap <b>Power &rarr; Control Hub</b> on the hub's single-adapter (input) side.</li>
-        <li>Snap the <span class="need">DC Motor Bit</span> to <code>BitSnap 3</code> on the Control Hub.</li>
-        <li>Snap the <span class="need">Servo Bit</span> to the <code>CENTER BitSnap</code>.</li>
-        <li>Set the <b>Servo's little switch to <code>turn</code></b> &mdash; <b>not</b> <code>swing</code>. In swing mode it waves instead of steering. (The DC Motor has its own direction switch next to it.)</li>
-        <li>Add the <b>wheel hook + small wheel</b> to the Servo Bit.</li>
-        <li><b>Power on.</b> The light on the Power Bit should glow <b>red</b>.</li>
-        <li class="dim">Optional: Wire &rarr; Proximity Sensor into <code>BitSnap 1</code>. Its self-driving was an app feature and is gone &mdash; R2 drives fine without it.</li>
-      </ol>
+      <h3>Part 1 &mdash; the circuit</h3>
 
-      <h3>Part 2 &mdash; Build the drive</h3>
-      <ol start="7">
-        <li>Set your circuit aside.</li>
-        <li>Click the <b>mounting block</b> onto the <b>wheel frame</b>, one side at a time.</li>
-        <li>Attach the <b>drive gear and axle</b> to the wheel frame.</li>
-        <li>Press the <b>large wheels onto the axle</b> &mdash; hard, until they're properly tight.</li>
-        <li>Press your <b>circuit firmly onto the FRONT</b> of the mounting block.</li>
-        <li>Press the <b>battery firmly onto the BACK</b>. Test it &mdash; it should stay put when you turn the whole thing upside down.</li>
-        <li>Add the <b>spike gear</b> onto the <b>DC Motor Bit</b>.</li>
-        <li><b>Click the DC motor assembly into the clips UNDERNEATH the wheel frame.</b></li>
-        <li>Press the <b>third-leg assembly</b> onto the wheel frame.</li>
-        <li><b>Power on</b> (light red), then connect up top and drive.</li>
-      </ol>
+      <div class="vstep">
+        <div class="hd"><span class="n">1</span><div>Plug the battery into the <b>Power Bit</b>, then snap the <b>Power Bit onto the Control Hub</b> (the hub's input side &mdash; the end with a single connector).</div></div>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">2</span><div>Snap the <b>DC Motor into BitSnap 3</b> and the <b>Servo into the CENTER BitSnap</b>. This matters &mdash; the hub expects each one in its own socket.</div></div>
+        <svg viewBox="0 0 340 158" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Motor goes in BitSnap 3, servo in the centre BitSnap">
+          <rect x="18" y="38" width="100" height="86" rx="8" fill="#eef3fa" stroke="#7d8a9c" stroke-width="2"/>
+          <rect x="18" y="38" width="100" height="12" rx="0" fill="#39d98a"/>
+          <text x="68" y="88" fill="#17202e" font-size="10" font-weight="bold" text-anchor="middle" font-family="sans-serif">CONTROL HUB</text>
+          <g stroke="#7d8a9c" stroke-width="1.5">
+            <rect x="118" y="46" width="12" height="15" fill="#f0a93b"/>
+            <rect x="118" y="73" width="12" height="15" fill="#f0a93b"/>
+            <rect x="118" y="100" width="12" height="15" fill="#f0a93b"/>
+          </g>
+          <text x="136" y="57" fill="#8a99b0" font-size="9" font-family="sans-serif">BitSnap 1</text>
+          <text x="136" y="84" fill="#3aa0ff" font-size="9" font-weight="bold" font-family="sans-serif">CENTER</text>
+          <text x="136" y="111" fill="#39d98a" font-size="9" font-weight="bold" font-family="sans-serif">BitSnap 3</text>
+          <line x1="196" y1="80" x2="222" y2="80" stroke="#3aa0ff" stroke-width="3"/>
+          <rect x="222" y="64" width="98" height="31" rx="6" fill="#1b2433" stroke="#3aa0ff" stroke-width="2"/>
+          <text x="271" y="84" fill="#3aa0ff" font-size="11" font-weight="bold" text-anchor="middle" font-family="sans-serif">SERVO</text>
+          <line x1="196" y1="113" x2="222" y2="113" stroke="#39d98a" stroke-width="3"/>
+          <rect x="222" y="98" width="98" height="31" rx="6" fill="#1b2433" stroke="#39d98a" stroke-width="2"/>
+          <text x="271" y="118" fill="#39d98a" font-size="11" font-weight="bold" text-anchor="middle" font-family="sans-serif">DC MOTOR</text>
+          <text x="18" y="148" fill="#8a99b0" font-size="9" font-family="sans-serif">pink sensor &rarr; BitSnap 1 (optional, not needed to drive)</text>
+        </svg>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">3</span><div>On the Servo there's a tiny switch marked <b>swing</b> and <b>turn</b>. Slide it to <b>turn</b>. On <b>swing</b> it just waves instead of steering.</div></div>
+        <svg viewBox="0 0 340 158" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Set the servo switch to turn, not swing">
+          <rect x="66" y="44" width="208" height="68" rx="10" fill="#8fe3b4" stroke="#2f8f5f" stroke-width="2"/>
+          <text x="170" y="36" fill="#8a99b0" font-size="10" text-anchor="middle" font-family="sans-serif">the Servo Bit</text>
+          <rect x="142" y="60" width="56" height="36" rx="5" fill="#eef3fa" stroke="#7d8a9c" stroke-width="2"/>
+          <rect x="174" y="65" width="19" height="26" rx="3" fill="#39414f"/>
+          <text x="128" y="84" fill="#ff4d53" font-size="12" text-anchor="end" font-weight="bold" font-family="sans-serif">swing</text>
+          <text x="212" y="84" fill="#39d98a" font-size="12" font-weight="bold" font-family="sans-serif">turn</text>
+          <path d="M150 124 h34" stroke="#39d98a" stroke-width="3"/><path d="M182 118 l12 6 -12 6z" fill="#39d98a"/>
+          <text x="170" y="150" fill="#39d98a" font-size="11" text-anchor="middle" font-weight="bold" font-family="sans-serif">slide it to TURN</text>
+        </svg>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">4</span><div>Put the <b>wheel hook and small wheel</b> onto the Servo. Then <b>switch the power on</b> &mdash; the light on the Power Bit should glow <b>red</b>.</div></div>
+      </div>
+
+      <h3>Part 2 &mdash; the drive</h3>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">5</span><div>Set the circuit aside. Click the <b>mounting block</b> (tall board) down onto the <b>wheel frame</b> (flat tray), <b>one side at a time</b>.</div></div>
+        <svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mounting block clicks down onto the wheel frame">
+          <g stroke="#7d8a9c" stroke-width="2">
+            <rect x="142" y="14" width="44" height="54" rx="4" fill="#c7d0db"/>
+            <rect x="155" y="6" width="19" height="10" rx="5" fill="#c7d0db"/>
+          </g>
+          <path d="M164 74 v16" stroke="#3aa0ff" stroke-width="4"/><path d="M156 86 l8 14 8-14z" fill="#3aa0ff"/>
+          <g stroke="#7d8a9c" stroke-width="2">
+            <polygon points="62,128 164,100 278,132 176,160" fill="#c7d0db"/>
+            <polygon points="62,128 176,160 176,168 62,136" fill="#93a0b1"/>
+          </g>
+          <text x="332" y="126" fill="#8a99b0" font-size="10" text-anchor="end" font-family="sans-serif">wheel frame</text>
+          <text x="196" y="40" fill="#8a99b0" font-size="10" font-family="sans-serif">mounting block</text>
+        </svg>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">6</span><div>Slide the <b>axle</b> through the bottom of the wheel frame with the <b>drive gear</b> on it, sitting in the middle.</div></div>
+        <svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Axle with the drive gear goes through the wheel frame">
+          <rect x="66" y="34" width="208" height="52" rx="8" fill="#c7d0db" stroke="#7d8a9c" stroke-width="2"/>
+          <g fill="#8d9aab"><circle cx="100" cy="52" r="2.6"/><circle cx="124" cy="52" r="2.6"/><circle cx="148" cy="52" r="2.6"/><circle cx="192" cy="52" r="2.6"/><circle cx="216" cy="52" r="2.6"/><circle cx="240" cy="52" r="2.6"/><circle cx="100" cy="70" r="2.6"/><circle cx="124" cy="70" r="2.6"/><circle cx="148" cy="70" r="2.6"/><circle cx="192" cy="70" r="2.6"/><circle cx="216" cy="70" r="2.6"/><circle cx="240" cy="70" r="2.6"/></g>
+          <line x1="40" y1="110" x2="300" y2="110" stroke="#aab7c7" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="170" cy="110" r="20" fill="#1b2433" stroke="#3aa0ff" stroke-width="7" stroke-dasharray="6 5"/>
+          <circle cx="170" cy="110" r="7" fill="#3aa0ff"/>
+          <text x="170" y="152" fill="#3aa0ff" font-size="11" text-anchor="middle" font-weight="bold" font-family="sans-serif">drive gear rides on the axle</text>
+        </svg>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">7</span><div>Push a <b>large wheel onto each end of the axle</b>. Press <b>hard</b> &mdash; they need to be properly seated or they'll slip off later.</div></div>
+        <svg viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Press a large wheel onto each end of the axle">
+          <rect x="96" y="30" width="148" height="44" rx="8" fill="#c7d0db" stroke="#7d8a9c" stroke-width="2"/>
+          <line x1="64" y1="100" x2="276" y2="100" stroke="#aab7c7" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="170" cy="100" r="17" fill="#1b2433" stroke="#3aa0ff" stroke-width="6" stroke-dasharray="6 5"/>
+          <circle cx="48" cy="100" r="28" fill="#161e2c" stroke="#c7d0db" stroke-width="4"/>
+          <circle cx="48" cy="100" r="9" fill="#27344b"/>
+          <circle cx="292" cy="100" r="28" fill="#161e2c" stroke="#c7d0db" stroke-width="4"/>
+          <circle cx="292" cy="100" r="9" fill="#27344b"/>
+          <path d="M48 52 v14" stroke="#39d98a" stroke-width="3"/><path d="M42 62 l6 12 6-12z" fill="#39d98a"/>
+          <path d="M292 52 v14" stroke="#39d98a" stroke-width="3"/><path d="M286 62 l6 12 6-12z" fill="#39d98a"/>
+          <text x="170" y="156" fill="#39d98a" font-size="11" text-anchor="middle" font-weight="bold" font-family="sans-serif">push HARD until tight</text>
+        </svg>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">8</span><div>Press your <b>Bits onto the FRONT</b> of the tall board, and the <b>battery onto the BACK</b>. Turn it upside down &mdash; the battery should stay put.</div></div>
+        <svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bits on the front of the board, battery on the back">
+          <rect x="152" y="18" width="34" height="112" rx="5" fill="#c7d0db" stroke="#7d8a9c" stroke-width="2"/>
+          <rect x="78" y="40" width="68" height="26" rx="4" fill="#8fe3b4" stroke="#2f8f5f" stroke-width="1.5"/>
+          <rect x="78" y="72" width="68" height="26" rx="4" fill="#f0a93b" stroke="#a9711f" stroke-width="1.5"/>
+          <text x="112" y="120" fill="#39d98a" font-size="11" text-anchor="middle" font-weight="bold" font-family="sans-serif">FRONT</text>
+          <text x="112" y="136" fill="#8a99b0" font-size="10" text-anchor="middle" font-family="sans-serif">your Bits</text>
+          <rect x="192" y="58" width="76" height="30" rx="5" fill="#2b3444" stroke="#7d8a9c" stroke-width="1.5"/>
+          <rect x="268" y="67" width="7" height="12" rx="2" fill="#7d8a9c"/>
+          <text x="230" y="120" fill="#3aa0ff" font-size="11" text-anchor="middle" font-weight="bold" font-family="sans-serif">BACK</text>
+          <text x="230" y="136" fill="#8a99b0" font-size="10" text-anchor="middle" font-family="sans-serif">battery</text>
+        </svg>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">9</span><div>Push the <b>spike gear</b> onto the <b>DC Motor</b>'s shaft.</div></div>
+        <svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Push the spike gear onto the DC motor shaft">
+          <rect x="112" y="84" width="116" height="52" rx="8" fill="#eef3fa" stroke="#7d8a9c" stroke-width="2"/>
+          <rect x="112" y="84" width="116" height="12" fill="#39d98a"/>
+          <text x="170" y="120" fill="#17202e" font-size="11" text-anchor="middle" font-weight="bold" font-family="sans-serif">DC MOTOR</text>
+          <rect x="163" y="60" width="14" height="26" rx="3" fill="#aab7c7" stroke="#7d8a9c" stroke-width="1.5"/>
+          <circle cx="170" cy="38" r="22" fill="#1b2433" stroke="#39d98a" stroke-width="7" stroke-dasharray="6 5"/>
+          <circle cx="170" cy="38" r="7" fill="#39d98a"/>
+          <path d="M268 38 h-40" stroke="#39d98a" stroke-width="3"/><path d="M232 32 l-12 6 12 6z" fill="#39d98a"/>
+          <text x="274" y="42" fill="#39d98a" font-size="10" font-family="sans-serif">spike gear</text>
+        </svg>
+      </div>
+
+      <div class="vstep key">
+        <div class="hd"><span class="n">10</span><div><b>Clip the motor into the clips UNDERNEATH the wheel frame</b> &mdash; and make sure the <b>spike gear is actually touching the drive gear</b>. See the diagram just below; this is the step that decides whether R2 moves.</div></div>
+      </div>
+
+      <div class="vstep">
+        <div class="hd"><span class="n">11</span><div>Clip the <b>third leg</b> on underneath the front, then <b>power on</b> (red light). Open this page in Bluefy, hit <b>Connect</b>, and drive.</div></div>
+        <svg viewBox="0 0 340 162" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Clip the third leg under the front">
+          <polygon points="66,56 196,30 282,58 152,88" fill="#c7d0db" stroke="#7d8a9c" stroke-width="2"/>
+          <circle cx="60" cy="86" r="20" fill="#161e2c" stroke="#c7d0db" stroke-width="3"/>
+          <circle cx="282" cy="88" r="20" fill="#161e2c" stroke="#c7d0db" stroke-width="3"/>
+          <rect x="141" y="92" width="14" height="28" rx="3" fill="#c7d0db" stroke="#7d8a9c" stroke-width="2"/>
+          <circle cx="148" cy="134" r="15" fill="#161e2c" stroke="#c7d0db" stroke-width="3"/>
+          <circle cx="148" cy="134" r="5" fill="#27344b"/>
+          <text x="178" y="130" fill="#8a99b0" font-size="10" font-family="sans-serif">third leg</text>
+        </svg>
+      </div>
 
       <div class="tip"><b>&#9888; This is the step that makes or breaks it.</b> When you clip the motor under the wheel frame, <b>the spike gear on the motor must physically touch the drive gear on the axle.</b> If those two gears aren't meshed, the motor spins happily and the wheels don't move at all. The app asked this exact question: <i>"Is the spike gear touching the drive gear?"</i></div>
 
